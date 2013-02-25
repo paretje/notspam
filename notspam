@@ -17,7 +17,7 @@ Commands:
                                       All messages returned from search will be
                                       learned as specified meat ('ham'/'spam').
 
-  tag [options] [id:]<docid>          Tag messages as spam or ham (spamc).
+  tag [options] <search-terms>        Tag messages as spam or ham (spamc).
     --spam=<tag>[,...]                  tags to apply to spam
     --ham=<tag>[,...]                   tags to apply to ham
     --dry                               dry run (no tags applied)
