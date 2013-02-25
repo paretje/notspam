@@ -78,16 +78,16 @@ def learn(meat, query_string, dry=False):
                 proc.stdin.write(msg.get_filename() + '\n')
             nmsg += 1
 
-        if not dry:
-            # run the process and wait for
-            proc.communicate()
-            ret = proc.wait()
-            if ret != 0:
-                print >>sys.stderr, 'Error during sa-learn call.'
-                sys.exit(ret)
+    if not dry:
+        # run the process and wait for
+        proc.communicate()
+        ret = proc.wait()
+        if ret != 0:
+            print >>sys.stderr, 'Error during sa-learn call.'
+            sys.exit(ret)
 
-            # sync the sa database
-            sa_sync()
+        # sync the sa database
+        sa_sync()
 
 ############################################################
 
