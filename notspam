@@ -156,15 +156,15 @@ def tag(query_string, spam_tags=[], ham_tags=[], dry=True):
                 flag = 'HAM'
                 tags = ham_tags
 
-            if dry:
-                print >>sys.stderr, '%4s (% .1f/%.1f): id:%s' % (flag, score, threshold, msg.get_message_id())
-            else:
-                print >>sys.stderr, '%4s (% .1f/%.1f) %s: id:%s' % (flag, score, threshold, tags, msg.get_message_id())
+            print >>sys.stderr, '%d/%d %4s (% .1f/%.1f)' % (nmsg, nmsgs, flag, score, threshold),
+            if not dry:
+                print >>sys.stderr, '%s' % (tags),
                 if tags:
                     msg.freeze
                     for tag in tags:
                         tag_msg(msg, tag)
                     msg.thaw
+            print >>sys.stderr, 'id:%s' % (msg.get_message_id())
             nmsg += 1
 
 ############################################################
