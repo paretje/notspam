@@ -65,8 +65,6 @@ def learn(meat, query_string, dry=False):
 
         nmsgs = query.count_messages()
 
-        print >>sys.stderr, "notspam: learning %d messages as %s ('%s')..." % (nmsgs, meat, query_string)
-
         # open the sa-learn process
         if not dry:
             proc = sa_learn(meat)
@@ -139,8 +137,6 @@ def tag(query_string, spam_tags=[], ham_tags=[], dry=True):
         query = db.create_query(query_string)
 
         nmsgs = query.count_messages()
-
-        print >>sys.stderr, "notspam: tagging %d messages ('%s')..." % (nmsgs, query_string)
 
         nmsg = 1
         for msg in query.search_messages():
