@@ -21,6 +21,7 @@ Commands:
     --spam=<tag>[,...]                  tags to apply to spam
     --ham=<tag>[,...]                   tags to apply to ham
     --dry                               dry run (no tags applied)
+  check <search-terms>                Synonym for 'tag --dry ...'.
 
   help                                This help.
 """
@@ -229,6 +230,11 @@ if __name__ == '__main__':
             tag(query_string, spam_tags=spam_tags, ham_tags=ham_tags, dry=dry)
         except KeyboardInterrupt:
             sys.exit()
+
+    ########################################
+    elif cmd in ['check']:
+        query_string = ' '.join(sys.argv[2:])
+        tag(query_string, dry=True)
 
     ########################################
     elif cmd in ['help','h']:
