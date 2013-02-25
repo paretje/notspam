@@ -18,7 +18,7 @@ Commands:
                                       learned as specified meat ('ham'/'spam').
 
   tag [options] [id:]<docid>          Tag messages as spam or ham (spamc).
-    --spam=<tag>[,...]                  tags to apply to spam (default: 'spam')
+    --spam=<tag>[,...]                  tags to apply to spam
     --ham=<tag>[,...]                   tags to apply to ham
     --dry                               dry run (no tags applied)
 
@@ -27,14 +27,26 @@ Commands:
 
 ############################################################
 
-def sa_learn(mfile, meat):
+# def sa_learn(mfile, meat):
+    # cmd = ["sa-learn",
+    #        "--local",
+    #        "--no-sync",
+    #        '--'+meat,
+    #        mfile
+    #        ]
+    # subprocess.check_call(cmd, stdout=subprocess.PIPE)
+def sa_learn(meat):
     cmd = ["sa-learn",
            "--local",
+           "--progress",
            "--no-sync",
            '--'+meat,
-           mfile
+           "-f", "-",
            ]
-    subprocess.check_call(cmd, stdout=subprocess.PIPE)
+    proc = subprocess.Popen(cmd,
+                            stdin=subprocess.PIPE
+                            )
+    return proc
 
 def sa_sync():
     cmd = ["sa-learn",
@@ -43,20 +55,39 @@ def sa_sync():
     subprocess.check_call(cmd)
 
 def learn(meat, query_string, dry=False):
-    db = notmuch.Database()
+    # open the database READ.WRITE, as this seems to be the only way
+    # to lock the database, which we want to do during this long
+    # operation.
+    with notmuch.Database(mode=1) as db:
 
-    query = db.create_query(query_string)
+        query = db.create_query(query_string)
 
-    for msg in query.search_messages():
+        nmsgs = query.count_messages()
+
+        print >>sys.stderr, "notspam: learning %d messages as %s ('%s')..." % (nmsgs, meat, query_string)
+
+        # open the sa-learn process
         if not dry:
-            print >>sys.stderr, meat+':',
-            sa_learn(msg.get_filename(), meat)
-        print >>sys.stderr, 'id:%s' % (msg.get_message_id())
+            proc = sa_learn(meat)
 
-    if not dry:
-        sa_sync()
+        # write the message file paths to process stdin
+        nmsg = 1
+        for msg in query.search_messages():
+            print >>sys.stderr, '%d/%d: id:%s' % (nmsg, nmsgs, msg.get_message_id())
+            if not dry:
+                proc.stdin.write(msg.get_filename() + '\n')
+            nmsg += 1
 
-    db.close()
+        if not dry:
+            # run the process and wait for
+            proc.communicate()
+            ret = proc.wait()
+            if ret != 0:
+                print >>sys.stderr, 'Error during sa-learn call.'
+                sys.exit(ret)
+
+            # sync the sa database
+            sa_sync()
 
 ############################################################
 
@@ -73,13 +104,13 @@ def spamc(mfile):
            "--check",
            ]
     with open(mfile, 'r') as f:
-        p = subprocess.Popen(cmd,
-                             stdin=f,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             )
-        (stdout, stderr) = p.communicate()
-        ret = p.wait()
+        proc = subprocess.Popen(cmd,
+                                stdin=f,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                )
+        (stdout, stderr) = proc.communicate()
+        ret = proc.wait()
     # process the return code.
     # 1 == spam
     # 0 == ham or error
@@ -100,37 +131,41 @@ def tag_msg(msg, tag):
     else:
         msg.add_tag(tag)
 
-def tag(query_string, spam_tags=['spam'], ham_tags=[], dry=True):
-    """Process new mail as ham/spam"""
-
+def tag(query_string, spam_tags=[], ham_tags=[], dry=True):
     # open the database READ.WRITE
-    db = notmuch.Database(mode=1)
+    with notmuch.Database(mode=1) as db:
 
-    query = db.create_query(query_string)
+        query = db.create_query(query_string)
 
-    for msg in query.search_messages():
-        try:
-            isspam, score, threshold = spamc(msg.get_filename())
-        except SpamcError as e:
-            print >>sys.stderr, 'spamc error: %s (id:%s)' % (e, msg.get_message_id())
-            continue
+        nmsgs = query.count_messages()
 
-        if isspam:
-            flag = 'SPAM'
-            tags = spam_tags
-        else:
-            flag = 'HAM'
-            tags = ham_tags
+        print >>sys.stderr, "notspam: tagging %d messages ('%s')..." % (nmsgs, query_string)
 
-        if dry:
-            print >>sys.stderr, '%4s (% .1f/%.1f): id:%s' % (flag, score, threshold, msg.get_message_id())
-        else:
-            print >>sys.stderr, '%4s (% .1f/%.1f) %s: id:%s' % (flag, score, threshold, tags, msg.get_message_id())
-            if tags:
-                msg.freeze
-                for tag in tags:
-                    tag_msg(msg, tag)
-                msg.thaw
+        nmsg = 1
+        for msg in query.search_messages():
+            try:
+                isspam, score, threshold = spamc(msg.get_filename())
+            except SpamcError as e:
+                print >>sys.stderr, 'spamc error: %s (id:%s)' % (e, msg.get_message_id())
+                continue
+
+            if isspam:
+                flag = 'SPAM'
+                tags = spam_tags
+            else:
+                flag = 'HAM'
+                tags = ham_tags
+
+            if dry:
+                print >>sys.stderr, '%4s (% .1f/%.1f): id:%s' % (flag, score, threshold, msg.get_message_id())
+            else:
+                print >>sys.stderr, '%4s (% .1f/%.1f) %s: id:%s' % (flag, score, threshold, tags, msg.get_message_id())
+                if tags:
+                    msg.freeze
+                    for tag in tags:
+                        tag_msg(msg, tag)
+                    msg.thaw
+            nmsg += 1
 
 ############################################################
 
@@ -168,7 +203,7 @@ if __name__ == '__main__':
 
     ########################################
     elif cmd in ['tag']:
-        spam_tags = ['spam']
+        spam_tags = []
         ham_tags = []
         dry = False
         argc = 2
