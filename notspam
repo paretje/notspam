@@ -28,14 +28,6 @@ Commands:
 
 ############################################################
 
-# def sa_learn(mfile, meat):
-    # cmd = ["sa-learn",
-    #        "--local",
-    #        "--no-sync",
-    #        '--'+meat,
-    #        mfile
-    #        ]
-    # subprocess.check_call(cmd, stdout=subprocess.PIPE)
 def sa_learn(meat):
     cmd = ["sa-learn",
            "--local",
