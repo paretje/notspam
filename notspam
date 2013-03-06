@@ -27,7 +27,10 @@ Description:
 
   Learn: Messages returned from the specified notmuch search (see
   notmuch-search-terms(7)) will be piped to sa-learn(1) and classified
-  as the specified meat ('ham' or 'spam').
+  as the specified meat ('ham' or 'spam').  The messages being learned
+  will logged on stdout:
+
+  <msg #>/<# msgs> id:<msg-id>
 
   Tag: Messages returned from the specified search will be classified
   as 'spam' or 'ham' via the spamc spamassassin client (see spamc(1)).
@@ -75,7 +78,7 @@ def learn(meat, query_string, dry=False):
         # write the message file paths to process stdin
         nmsg = 1
         for msg in query.search_messages():
-            print >>sys.stderr, '%d/%d: id:%s' % (nmsg, nmsgs, msg.get_message_id())
+            print '%d/%d id:%s' % (nmsg, nmsgs, msg.get_message_id())
             if not dry:
                 proc.stdin.write(msg.get_filename() + '\n')
             nmsg += 1
