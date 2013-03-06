@@ -225,7 +225,7 @@ if __name__ == '__main__':
         tag(query_string, dry=True)
 
     ########################################
-    elif cmd in ['help','h']:
+    elif cmd in ['help','h','-h','--help']:
         usage()
         sys.exit(0)
 
