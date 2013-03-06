@@ -82,7 +82,7 @@ def learn(meat, query_string, dry=False):
 
 ############################################################
 
-class SpamcError(Exception):
+class SpamCheckError(Exception):
     def __init__(self, msg):
         self.msg = msg
     def __str__(self):
@@ -134,7 +134,7 @@ def tag(query_string, spam_tags=[], ham_tags=[], dry=True):
         for msg in query.search_messages():
             try:
                 isspam, score, threshold = spamc(msg.get_filename())
-            except SpamcError as e:
+            except SpamCheckError as e:
                 print >>sys.stderr, 'spamc error: %s (id:%s)' % (e, msg.get_message_id())
                 continue
 
