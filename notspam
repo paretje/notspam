@@ -124,7 +124,7 @@ def spamc(mfile):
         isspam = True
     else:
         if stdout.strip() == '0/0':
-            raise SpamcError(stderr.strip())
+            raise SpamCheckError(stderr.strip())
         isspam = False
     return isspam, float(score), float(threshold)
 
