@@ -20,8 +20,8 @@ Commands:
     --spam=<tag>[,...]                tags to apply to spam
     --ham=<tag>[,...]                 tags to apply to ham
     --dry                             dry run (no tags applied)
-  check <search-terms>             Synonym for 'tag --dry <search-terms>'.
-  help                             This help.
+  check <search-terms>              Synonym for 'tag --dry <search-terms>'.
+  help                              This help.
 
 Description:
 
@@ -159,7 +159,7 @@ def tag(query_string, spam_tags=[], ham_tags=[], dry=True):
                 flag = 'HAM'
                 tags = ham_tags
 
-            print '%d/%d %4s (% .1f/%.1f)' % (nmsg, nmsgs, flag, score, threshold),
+            print '%d/%d %4s (%.1f/%.1f)' % (nmsg, nmsgs, flag, score, threshold),
             if not dry:
                 print '%s' % (tags),
                 if tags:
