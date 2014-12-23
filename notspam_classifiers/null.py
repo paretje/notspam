@@ -1,6 +1,6 @@
-from notspam import NotspamLearner, NotspamClassifier
+from . import *
 
-class Learner(NotspamLearner):
+class Trainer(NotspamTrainer):
     pass
 
 class Classifier(NotspamClassifier):

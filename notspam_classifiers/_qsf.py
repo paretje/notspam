@@ -4,18 +4,15 @@ from notspam import NotspamLearner, NotspamClassifier
 
 class Learner(NotspamLearner):
     def __init__(self, meat):
+        self.cmd = ["qsf", "-a"]
         if meat == 'spam':
-            self.cmd = '--mark-spam'
+            self.cmd += '--mark-spam'
         elif meat == 'ham':
-            self.cmd = '--mark-nonspam'
+            self.cmd += '--mark-nonspam'
 
     def add(self, msg):
-        cmd = ["qsf",
-               "-a",
-               self.cmd
-               ]
         with open(msg.get_filename(), 'r') as f:
-            proc = subprocess.Popen(cmd,
+            proc = subprocess.Popen(self.cmd,
                                     stdin=f,
             )
             (stdout, stderr) = proc.communicate()

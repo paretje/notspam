@@ -4,17 +4,15 @@ import subprocess
 
 class Trainer(NotspamTrainer):
     def __init__(self, meat):
+        self.cmd = ["bogofilter"]
         if meat == 'spam':
-            self.cmd = '-s'
+            self.cmd += '-s'
         elif meat == 'ham':
-            self.cmd = '-n'
+            self.cmd += '-n'
 
     def add(self, msg):
-        cmd = ["bogofilter",
-               self.cmd
-               ]
         with open(msg.get_filename(), 'r') as f:
-            subprocess.check_call(cmd,
+            subprocess.check_call(self.cmd,
                                   stdin=f,
                                   stdout=subprocess.DEVNULL,
                                   stderr=subprocess.DEVNULL,

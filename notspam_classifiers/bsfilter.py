@@ -4,17 +4,15 @@ import subprocess
 
 class Trainer(NotspamTrainer):
     def __init__(self, meat):
+        self.cmd = ['bsfilter']
         if meat == 'spam':
-            self.cmd = '-s'
+            self.cmd += '-s'
         elif meat == 'ham':
-            self.cmd = '-c'
+            self.cmd += '-c'
 
     def add(self, msg):
-        cmd = ['bsfilter',
-               self.cmd,
-               msg.get_filename(),
-               ]
-        subprocess.call(cmd, stdout=subprocess.DEVNULL)
+        self.cmd += msg.get_filename()
+        subprocess.call(self.cmd, stdout=subprocess.DEVNULL)
 
     def sync(self):
         cmd = ['bsfilter', '--update']
