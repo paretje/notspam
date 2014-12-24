@@ -316,10 +316,6 @@ if __name__ == '__main__':
     if cmd in ['train']:
         tags = []
         dry = False
-        if len(sys.argv) < 4:
-            print("Must specify meat and search terms.", file=sys.stderr)
-            sys.exit(1)
-
         argc = 2
         while True:
             if argc >= len(sys.argv):
@@ -333,11 +329,15 @@ if __name__ == '__main__':
                 break
             argc += 1
 
-        meat = sys.argv[argc]
+        try:
+            meat = sys.argv[argc]
+        except IndexError:
+            sys.exit("Must specify training meat type ('ham' or 'spam').")
         if meat not in ['ham', 'spam']:
-            print("Meat must be either 'ham' or 'spam'.", file=sys.stderr)
-            sys.exit(2)
+            sys.exit("Meat must be either 'ham' or 'spam'.")
         query_string = ' '.join(sys.argv[argc+1:])
+        if not query_string:
+            sys.exit("Must specify search terms.")
 
         module = _import_classifier(cname)
         try:
@@ -367,6 +367,9 @@ if __name__ == '__main__':
             argc += 1
 
         query_string = ' '.join(sys.argv[argc:])
+        if not query_string:
+            sys.exit("Must specify search terms.")
+
         module = _import_classifier(cname)
         _classify(module, query_string,
                   spam_tags=spam_tags,
@@ -378,6 +381,9 @@ if __name__ == '__main__':
     ########################################
     elif cmd in ['check']:
         query_string = ' '.join(sys.argv[2:])
+        if not query_string:
+            sys.exit("Must specify search terms.")
+
         module = _import_classifier(cname)
         _classify(module, query_string, dry=True)
 
@@ -388,6 +394,4 @@ if __name__ == '__main__':
 
     ########################################
     else:
-        print("Unknown command '%s'." % cmd, sys.stderr)
-        _usage()
-        sys.exit(1)
+        sys.exit("Unknown command '%s'.  See 'help' for more info." % cmd)
