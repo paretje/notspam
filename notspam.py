@@ -168,7 +168,10 @@ def train(classifier, meat, query_string, tags=[], dry=True):
         nmsg = 0
         for msg in query.search_messages():
             nmsg += 1
+
             logmsg = '%d/%d' % (nmsg, nmsgs)
+            _logproc(logmsg+' id:%s' % (msg.get_message_id()), end='\r')
+
             try:
                 cmsg = trainer.add(msg)
             except NotspamTrainingError as e:
@@ -236,6 +239,9 @@ def classify(classifier, query_string, spam_tags=[], ham_tags=[], unk_tags=[], d
         for msg in query.search_messages():
             nmsg += 1
 
+            logmsg = '%d/%d' % (nmsg, nmsgs)
+            _logproc(logmsg+' id:%s' % (msg.get_message_id()), end='\r')
+
             try:
                 isspam, cmsg = classify(msg)
             except NotspamClassificationError as e:
@@ -260,7 +266,7 @@ def classify(classifier, query_string, spam_tags=[], ham_tags=[], unk_tags=[], d
                 tags = ham_tags
                 nham += 1
 
-            logmsg = '%d/%d %s' % (nmsg, nmsgs, flag)
+            logmsg += ' %s' % (flag)
             if cmsg:
                 logmsg += ' (%s)' % cmsg
             if not dry:
