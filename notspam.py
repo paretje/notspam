@@ -45,8 +45,9 @@ import traceback
 import notspam_classifiers
 from notspam_classifiers import *
 
-_PROG = 'notspam'
-_VERSION = '0.0'
+__AUTHOR__ = 'Jameson Rollins <jrollins@finestructure.net>'
+__LICENSE__ = 'GPL v3+'
+__VERSION__ = '0.0'
 DEFAULT_CLASSIFIER = 'sylfilter'
 CLASSIFIERS = notspam_classifiers.classifiers_list()
 
@@ -60,7 +61,7 @@ def _usage():
         clist += ', %s' % c
     clist += ', null'
 
-    print("Usage:", _PROG, "<command> [args...]")
+    print("Usage: notspam <command> [args...]")
     print("""
 Notmuch spam classification interface.
 
