@@ -67,7 +67,8 @@ Notmuch spam classification interface.
 Commands:
 
   train <meat> <search-terms>       train classifier with spam/ham
-    --dry                             dry run
+    --tags=<tag>[,...]                tags to apply to trained messages
+    --dry                             dry run (no training or tagging)
   classify [options] <search-terms> tag messages as spam or ham
     --spam=<tag>[,...]                tags to apply to spam
     --ham=<tag>[,...]                 tags to apply to ham
@@ -105,15 +106,6 @@ Classifiers:
     
 ############################################################
 
-def _logproc(msg):
-    if not os.getenv('NOTSPAM_LOG'):
-        return
-    end = '\n'
-    output = sys.stdout
-    print(msg, end=end, file=output)
-
-############################################################
-
 def import_classifier(name):
     """Import named spam classifcation system.
 
@@ -132,13 +124,36 @@ def _import_classifier(name):
     
 ############################################################
 
-def train(classifier, meat, query_string):
+def _logproc(msg, end='\n'):
+    if not os.getenv('NOTSPAM_LOG'):
+        return
+    output = sys.stdout
+    print(msg, end=end, file=output)
+
+def _tag_msg(msg, tags):
+    if not tags:
+        return
+    msg.freeze()
+    for tag in tags:
+        if tag[0] == '+':
+            msg.add_tag(tag[1:])
+        elif tag[0] == '-':
+            msg.remove_tag(tag[1:])
+        else:
+            msg.add_tag(tag)
+    msg.thaw()
+
+############################################################
+
+def train(classifier, meat, query_string, tags=[], dry=True):
     """Train classifier with specified messages as ham or spam.
 
-    'classifier' is classifier module imported with import_classifier.
-    'query_string' is a notmuch query string.
+    'classifier' is classifier module imported with
+    import_classifier().  'query_string' is a notmuch query string.
+    'tags' is a list of tags to be applied to all messages used in
+    training.  If 'dry' is False, messages will not be tagged.
 
-    returns nmsgs
+    Returns the number of messages trained on.
 
     """
     trainer = classifier.Trainer(meat)
@@ -162,8 +177,12 @@ def train(classifier, meat, query_string):
             except:
                 print("Fatal error: id:%s" % (msg.get_message_id()), file=sys.stderr)
                 raise
+
             if cmsg:
                 logmsg += ' %s'
+            if not dry:
+                logmsg += ' %s' % (tags)
+                _tag_msg(msg, tags)
             logmsg += ' id:%s     ' % (msg.get_message_id())
             _logproc(logmsg)
 
@@ -183,14 +202,6 @@ def _train(*args, **kwargs):
           file=sys.stderr)
 
 ############################################################
-
-def _tag_msg(msg, tag):
-    if tag[0] == '+':
-        msg.add_tag(tag[1:])
-    elif tag[0] == '-':
-        msg.remove_tag(tag[1:])
-    else:
-        msg.add_tag(tag)
 
 def classify(classifier, query_string, spam_tags=[], ham_tags=[], unk_tags=[], dry=True):
     """Classify specified messages and apply tags appropriately.
@@ -253,11 +264,7 @@ def classify(classifier, query_string, spam_tags=[], ham_tags=[], unk_tags=[], d
                 logmsg += ' (%s)' % cmsg
             if not dry:
                 logmsg += ' %s' % (tags)
-                if tags:
-                    msg.freeze
-                    for tag in tags:
-                        _tag_msg(msg, tag)
-                    msg.thaw
+                _tag_msg(msg, tags)
             logmsg += ' id:%s     ' % (msg.get_message_id())
 
             _logproc(logmsg)
@@ -300,6 +307,8 @@ if __name__ == '__main__':
     ########################################
 
     if cmd in ['train']:
+        tags = []
+        dry = False
         if len(sys.argv) < 4:
             print("Must specify meat and search terms.", file=sys.stderr)
             sys.exit(1)
@@ -308,8 +317,11 @@ if __name__ == '__main__':
         while True:
             if argc >= len(sys.argv):
                 break
+            elif '--tags=' in sys.argv[argc]:
+                tags = sys.argv[argc].split('=',1)[1].split(',')
             elif '--dry' in sys.argv[argc]:
                 mname = 'null'
+                dry = True
             else:
                 break
             argc += 1
@@ -318,12 +330,11 @@ if __name__ == '__main__':
         if meat not in ['ham', 'spam']:
             print("Meat must be either 'ham' or 'spam'.", file=sys.stderr)
             sys.exit(2)
-
         query_string = ' '.join(sys.argv[argc+1:])
 
         module = _import_classifier(cname)
         try:
-            msgs = _train(module, meat, query_string)
+            msgs = _train(module, meat, query_string, tags=tags, dry=dry)
         except KeyboardInterrupt:
             sys.exit(-1)
 
