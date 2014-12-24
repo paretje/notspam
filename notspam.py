@@ -123,8 +123,12 @@ def import_classifier(name):
     return importlib.import_module('.'+name, package='notspam_classifiers')
 
 def _import_classifier(name):
+    try:
+        module = import_classifier(name)
+    except ImportError:
+        sys.exit("Import error: no classifier named '%s'." % name)
     print("classifier: %s" % name, file=sys.stderr)
-    return import_classifier(name)
+    return module
     
 ############################################################
 
