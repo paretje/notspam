@@ -29,8 +29,8 @@ message object to the spam classifier:
 ...     for msg in query.search_messages():
 ...         isspam, score = classify(msg)
 
-The train() and tag() functions are convenience wrappers to train the
-classifier and apply tags to messages that have been classified.
+The train() and classify() functions are convenience wrappers to train
+the classifier and classify messages.
 
 """
 
@@ -68,12 +68,12 @@ Commands:
 
   train <meat> <search-terms>       train classifier with spam/ham
     --dry                             dry run
-  tag [options] <search-terms>      tag messages as spam or ham
+  classify [options] <search-terms> tag messages as spam or ham
     --spam=<tag>[,...]                tags to apply to spam
     --ham=<tag>[,...]                 tags to apply to ham
     --unk=<tag>[,...]                 tags to apply to unknown
     --dry                             dry run (no tags applied)
-  check <search-terms>              synonym for 'tag --dry'
+  check <search-terms>              synonym for 'classify --dry'
   help                              this help
 
 Description:
@@ -85,9 +85,9 @@ Description:
 
     <msg #>/<# msgs> id:<msg-id>
 
-  Tag: Messages returned from the specified notmuch search will be
-    classified as 'spam' or 'ham' by the classifier.  If NOTSPAM_LOG
-    is non-nil, classifications will be logged to stdout:
+  Classify: Messages returned from the specified notmuch search will
+    be classified as 'spam', 'ham', or '?' by the classifier.  If
+    NOTSPAM_LOG is non-nil, classifications will be logged to stdout:
 
     <msg #>/<# msgs> <meat> (<score>) [<applied tags>] id:<msg-id>
 
@@ -188,13 +188,17 @@ def _tag_msg(msg, tag):
     else:
         msg.add_tag(tag)
 
-def tag(classifier, query_string, spam_tags=[], ham_tags=[], unk_tags=[], dry=True):
-    """Tag specified messages as ham, spam, or unknown.
+def classify(classifier, query_string, spam_tags=[], ham_tags=[], unk_tags=[], dry=True):
+    """Classify specified messages and apply tags appropriately.
 
-    'classifier' is classifier module imported with import_classifier.
-    'query_string' is a notmuch query string.
+    'classifier' is classifier module imported with
+    import_classifier().  'query_string' is a notmuch query string.
 
-    returns nmsgs, nham, nspam, nunk
+    Returns the tuple (nmsgs, nham, nspam, nunk) where:
+      nmsgs   total number of messages in search
+      nham    number of ham messages
+      hspam   number of spam messages
+      nunk    number of unknown messages
 
     """
     classify = classifier.Classifier()
@@ -256,9 +260,9 @@ def tag(classifier, query_string, spam_tags=[], ham_tags=[], unk_tags=[], dry=Tr
 
         return nmsgs, nham, nspam, nunk
 
-def _tag(*args, **kwargs):
+def _classify(*args, **kwargs):
     t = time.time()
-    nmsgs, nham, nspam, nunk = tag(*args, **kwargs)
+    nmsgs, nham, nspam, nunk = classify(*args, **kwargs)
     t = time.time() - t
     pham = pspam = punk = 0.0
     if nmsgs:
@@ -320,7 +324,7 @@ if __name__ == '__main__':
             sys.exit(-1)
 
     ########################################
-    elif cmd in ['tag']:
+    elif cmd in ['classify']:
         spam_tags = []
         ham_tags = []
         dry = False
@@ -342,18 +346,18 @@ if __name__ == '__main__':
 
         query_string = ' '.join(sys.argv[argc:])
         module = _import_classifier(cname)
-        _tag(module, query_string,
-             spam_tags=spam_tags,
-             ham_tags=ham_tags,
-             unk_tags=unk_tags,
-             dry=dry
-             )
+        _classify(module, query_string,
+                  spam_tags=spam_tags,
+                  ham_tags=ham_tags,
+                  unk_tags=unk_tags,
+                  dry=dry
+              )
 
     ########################################
     elif cmd in ['check']:
         query_string = ' '.join(sys.argv[2:])
         module = _import_classifier(cname)
-        _tag(module, query_string, dry=True)
+        _classify(module, query_string, dry=True)
 
     ########################################
     elif cmd in ['help','h','-h','--help']:
