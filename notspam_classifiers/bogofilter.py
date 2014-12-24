@@ -6,9 +6,9 @@ class Trainer(NotspamTrainer):
     def __init__(self, meat):
         self.cmd = ["bogofilter"]
         if meat == 'spam':
-            self.cmd += '-s'
+            self.cmd += ['-s']
         elif meat == 'ham':
-            self.cmd += '-n'
+            self.cmd += ['-n']
 
     def add(self, msg):
         with open(msg.get_filename(), 'r') as f:

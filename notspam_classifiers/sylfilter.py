@@ -6,9 +6,9 @@ class Trainer(NotspamTrainer):
     def __init__(self, meat):
         self.cmd = ['sylfilter']
         if meat == 'spam':
-            self.cmd += '-j'
+            self.cmd += ['-j']
         elif meat == 'ham':
-            self.cmd += '-c'
+            self.cmd += ['-c']
 
     def add(self, msg):
         self.cmd += msg.get_filename()

@@ -6,9 +6,9 @@ class Trainer(NotspamTrainer):
     def __init__(self, meat):
         self.cmd = ['bsfilter']
         if meat == 'spam':
-            self.cmd += '-s'
+            self.cmd += ['-s']
         elif meat == 'ham':
-            self.cmd += '-c'
+            self.cmd += ['-c']
 
     def add(self, msg):
         self.cmd += msg.get_filename()
