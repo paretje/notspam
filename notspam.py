@@ -212,6 +212,8 @@ def classify(classifier, query_string, spam_tags=[], ham_tags=[], unk_tags=[], d
 
     'classifier' is classifier module imported with
     import_classifier().  'query_string' is a notmuch query string.
+    '*_tags" are lists of tags to be applied to the classified
+    messages.  If 'dry' is True, messages will not be tagged.
 
     Returns the tuple (nmsgs, nham, nspam, nunk) where:
       nmsgs   total number of messages in search
