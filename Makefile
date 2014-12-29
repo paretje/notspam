@@ -1,6 +1,6 @@
 # -*- makefile -*-
 
-VERSION:=$(shell python3 -c 'from notspam import _VERSION; print(_VERSION)')
+VERSION:=$(shell python3 -c 'from notspam import __VERSION__; print(__VERSION__)')
 
 .PHONY: all
 all:

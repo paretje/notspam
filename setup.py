@@ -2,11 +2,11 @@
 
 from distutils.core import setup
 
-from notspam import _VERSION
+from notspam import __VERSION__
 
 setup(
     name = 'notspam',
-    version = _VERSION,
+    version = __VERSION__,
     description = 'Notmuch spam classification interface.',
     author = 'Jameson Graef Rollins',
     author_email = 'jrollins@finestructure.net',
