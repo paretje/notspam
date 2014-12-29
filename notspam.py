@@ -48,15 +48,15 @@ from notspam_classifiers import *
 __AUTHOR__ = 'Jameson Rollins <jrollins@finestructure.net>'
 __LICENSE__ = 'GPL v3+'
 __VERSION__ = '0.0'
-DEFAULT_CLASSIFIER = 'sylfilter'
+_DEFAULT_CLASSIFIER = 'sylfilter'
 CLASSIFIERS = notspam_classifiers.classifiers_list()
 
 ############################################################
 
 def _usage():
-    clist = '%s (default)' % DEFAULT_CLASSIFIER
+    clist = '%s (default)' % _DEFAULT_CLASSIFIER
     for c in CLASSIFIERS:
-        if c in [DEFAULT_CLASSIFIER, 'null']:
+        if c in [_DEFAULT_CLASSIFIER, 'null']:
             continue
         clist += ', %s' % c
     clist += ', null'
@@ -311,7 +311,7 @@ if __name__ == '__main__':
 
     ########################################
 
-    cname = os.getenv('NOTSPAM_CLASSIFIER', DEFAULT_CLASSIFIER).lower()
+    cname = os.getenv('NOTSPAM_CLASSIFIER', _DEFAULT_CLASSIFIER).lower()
 
     ########################################
 
