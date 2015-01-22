@@ -67,16 +67,18 @@ Notmuch spam classification interface.
 
 Commands:
 
-  train <meat> <search-terms>       train classifier with spam/ham
-    --tags=<tag>[,...]                tags to apply to trained messages
-    --dry                             dry run (no training or tagging)
-  classify [options] <search-terms> tag messages as spam or ham
-    --spam=<tag>[,...]                tags to apply to spam
-    --ham=<tag>[,...]                 tags to apply to ham
-    --unk=<tag>[,...]                 tags to apply to unknown
-    --dry                             dry run (no tags applied)
-  check <search-terms>              synonym for 'classify --dry'
-  help                              this help
+  train [opts] <meat> <search-terms>    train classifier with spam/ham
+    --tags=<tag>[,...]                    tags to apply to trained messages
+    --dry                                 dry run (no training or tagging)
+  retrain [opts] <meat> <search-terms>  retrain message (if supported)
+                                          see 'train' opts
+  classify [opts] <search-terms>        tag messages as spam or ham
+    --spam=<tag>[,...]                    tags to apply to spam
+    --ham=<tag>[,...]                     tags to apply to ham
+    --unk=<tag>[,...]                     tags to apply to unknown
+    --dry                                 dry run (no tags applied)
+  check <search-terms>                  synonym for 'classify --dry'
+  help                                  this help
 
 Description:
 
@@ -146,7 +148,7 @@ def _tag_msg(msg, tags):
 
 ############################################################
 
-def train(classifier, meat, query_string, tags=[], dry=True):
+def train(classifier, meat, query_string, tags=[], retrain=False, dry=True):
     """Train classifier with specified messages as ham or spam.
 
     'classifier' is classifier module imported with
@@ -157,7 +159,7 @@ def train(classifier, meat, query_string, tags=[], dry=True):
     Returns the number of messages trained on.
 
     """
-    trainer = classifier.Trainer(meat)
+    trainer = classifier.Trainer(meat, retrain=retrain)
 
     # open the database READ.WRITE, as this seems to be the only way
     # to lock the database, which we want during this potentially long
@@ -198,7 +200,12 @@ def _train(*args, **kwargs):
     t = time.time()
     nmsgs = train(*args, **kwargs)
     t = time.time() - t
-    print("trained %d '%s' messages in %.2fs (%.2f msgs/s)" % (
+    if kwargs['retrain']:
+        act = 'retrained'
+    else:
+        act = 'trained'
+    print("%s %d '%s' messages in %.2fs (%.2f msgs/s)" % (
+        act,
         nmsgs,
         args[1],
         t,
@@ -315,7 +322,11 @@ if __name__ == '__main__':
 
     ########################################
 
-    if cmd in ['train']:
+    if cmd in ['train', 'retrain']:
+        if cmd == 'train':
+            retrain = False
+        elif cmd == 'retrain':
+            retrain = True
         tags = []
         dry = False
         argc = 2
@@ -343,7 +354,10 @@ if __name__ == '__main__':
 
         module = _import_classifier(cname)
         try:
-            msgs = _train(module, meat, query_string, tags=tags, dry=dry)
+            msgs = _train(module, meat, query_string,
+                          tags=tags,
+                          retrain=retrain,
+                          dry=dry)
         except KeyboardInterrupt:
             sys.exit(-1)
 

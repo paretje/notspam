@@ -3,11 +3,15 @@ from . import *
 import subprocess
 
 class Trainer(NotspamTrainer):
-    def __init__(self, meat):
+    def __init__(self, meat, retrain=False):
         self.cmd = ['sylfilter']
         if meat == 'spam':
+            if retrain:
+                self.cmd += ['-C']
             self.cmd += ['-j']
         elif meat == 'ham':
+            if retrain:
+                self.cmd += ['-J']
             self.cmd += ['-c']
 
     def add(self, msg):
