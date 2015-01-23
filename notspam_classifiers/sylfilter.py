@@ -15,7 +15,8 @@ class Trainer(NotspamTrainer):
             self.cmd += ['-c']
 
     def add(self, msg):
-        self.cmd += msg.get_filename()
+        self.cmd += [msg.get_filename()]
+        # FIXME: why are we not catching errors here?
         subprocess.call(self.cmd,
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL,
