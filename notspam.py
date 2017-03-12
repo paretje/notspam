@@ -164,7 +164,7 @@ def train(classifier, meat, query_string, tags=[], retrain=False, dry=True):
     # open the database READ.WRITE, as this seems to be the only way
     # to lock the database, which we want during this potentially long
     # operation.
-    with notmuch.Database(mode=1) as db:
+    with notmuch.Database(mode=1, path=os.environ.get('MAILDIR', None)) as db:
         query = db.create_query(query_string)
         nmsgs = query.count_messages()
         nmsg = 0
@@ -237,7 +237,7 @@ def classify(classifier, query_string, spam_tags=[], ham_tags=[], unk_tags=[], d
         mode = 1
 
     # open the database READ.WRITE
-    with notmuch.Database(mode=mode) as db:
+    with notmuch.Database(mode=mode, path=os.environ.get('MAILDIR', None)) as db:
         query = db.create_query(query_string)
         nmsgs = query.count_messages()
         nmsg = 0
