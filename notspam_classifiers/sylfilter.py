@@ -2,8 +2,6 @@ from . import *
 
 import subprocess
 
-SYLFILTER_MAX_MESSAGES = 10000
-
 class Trainer(NotspamTrainer):
     def __init__(self, meat, retrain=False):
         self.cmd = ['sylfilter']
@@ -16,18 +14,21 @@ class Trainer(NotspamTrainer):
                 self.cmd += ['-J']
             self.cmd += ['-c']
 
-        self.msgs = []
+        self.__proc = subprocess.Popen(['xargs'] + self.cmd,
+                                       stdin=subprocess.PIPE,
+                                       stdout=subprocess.DEVNULL,
+                                       stderr=subprocess.DEVNULL,
+                                       )
 
     def add(self, msg):
-        self.msgs += [msg.get_filename()]
-        # FIXME: why are we not catching errors here?
+        # write the message file paths to process stdin
+        path = msg.get_filename()
+        self.__proc.stdin.write(bytes(path + '\n', 'UTF-8'))
 
     def sync(self):
-        for i in range(0, len(self.msgs), SYLFILTER_MAX_MESSAGES):
-            subprocess.call(self.cmd + self.msgs[i:i+SYLFILTER_MAX_MESSAGES],
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL,
-                            )
+        # FIXME: why are we not catching errors here?
+        self.__proc.communicate()
+        ret = self.__proc.wait()
 
 class Classifier(NotspamClassifier):
 
